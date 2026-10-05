@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>X-Station Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="booting">
+
+<!-- ============ Loading ============ -->
+<div class="splash" id="splash">
+  <span class="logo">⚡</span>
+  <p>Loading…</p>
+</div>
+
+<!-- ============ Sign in ============ -->
+<div class="auth-screen hidden" id="authScreen">
+  <form class="auth-card" id="authForm">
+    <div class="auth-brand">
+      <span class="logo">⚡</span>
+      <div>
+        <strong>X-Station Manager</strong>
+        <small>Charging &amp; Drinks</small>
+      </div>
+    </div>
+    <span class="setup-badge hidden" id="setupBadge">First-time setup</span>
+    <h1 id="authTitle">Sign in</h1>
+    <p class="sub" id="authSub">Use the email and password your admin gave you.</p>
+    <div class="form">
+      <label class="hidden" id="authNameRow">Your name <input type="text" id="authName" autocomplete="name" maxlength="80"></label>
+      <label>Email <input type="email" id="authEmail" autocomplete="email" required></label>
+      <label>Password <input type="password" id="authPassword" autocomplete="current-password" minlength="6" required></label>
+      <p class="auth-error hidden" id="authError"></p>
+      <button class="btn" type="submit" id="authSubmit">Sign in</button>
+    </div>
+    <div class="auth-links">
+      <button type="button" class="link" id="authReset">Forgot password?</button>
+    </div>
+    <p class="auth-foot">Accounts are created by the admin. Ask your admin if you need access.</p>
+  </form>
+</div>
+
+<!-- ============ Signed in, but no access ============ -->
+<div class="auth-screen hidden" id="noAccessScreen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="logo">⚡</span>
+      <div>
+        <strong>X-Station Manager</strong>
+        <small>Charging &amp; Drinks</small>
+      </div>
+    </div>
+    <h1>No access</h1>
+    <p class="sub" id="noAccessText"></p>
+    <div class="form mt">
+      <div class="hidden" id="claimBox">
+        <label>Your name <input type="text" id="claimName" maxlength="80"></label>
+        <button class="btn mt" id="claimBtn" type="button">Make this account the admin</button>
+      </div>
+      <p class="auth-error hidden" id="noAccessError"></p>
+      <button class="btn ghost" type="button" data-signout>Sign out</button>
+    </div>
+  </div>
+</div>
+
+<div class="app hidden" id="app">
+
+  <!-- ============ Sidebar (desktop) / bottom bar (phone) ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">⚡</span>
+      <div class="brand-text">
+        <strong id="shopName">X-Station</strong>
+        <small>Charging &amp; Drinks</small>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#dashboard" class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#record" class="nav-item" data-page="record">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4z"/></svg>
+        <span>Record Day</span>
+      </a>
+      <a href="#reports" class="nav-item" data-page="reports">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm-1 7V3.5L18.5 9zM8 18v-5h2v5zm3 0v-8h2v8zm3 0v-3h2v3z"/></svg>
+        <span>Reports</span>
+      </a>
+      <a href="#admin" class="nav-item" data-page="admin" data-admin-only>
+        <svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.6 3.8 10.7 9 12 5.2-1.3 9-6.4 9-12V5zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2c-2.3-.7-4.2-2.3-5.3-4.3.1-1.8 3.6-2.7 5.3-2.7s5.2 1 5.3 2.7c-1.1 2-3 3.6-5.3 4.3z"/></svg>
+        <span>Admin</span>
+      </a>
+      <a href="#settings" class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7 7 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.7a7 7 0 0 0-1.7 1l-2.5-1-2 3.4L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.7a7 7 0 0 0 1.7-1l2.5 1 2-3.4zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+    <div class="sidebar-foot">
+      <div id="sidebarToday"></div>
+      <div class="sync" data-sync><i></i><span>Connecting…</span></div>
+      <div class="user-row">
+        <span class="user-email"><span data-user-email></span> <span class="role-tag" data-user-role></span></span>
+        <button class="link" data-signout>Sign out</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section class="page" id="page-dashboard">
+      <header class="page-head">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="sub" id="dashRange"></p>
+        </div>
+        <div class="head-actions">
+          <div class="segmented" id="periodFilter" aria-label="Period">
+            <button data-period="7d">7 days</button>
+            <button data-period="30d">30 days</button>
+            <button data-period="month">This month</button>
+            <button data-period="lastmonth">Last month</button>
+            <button data-period="year">This year</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="alert hidden" id="todayAlert">
+        <span>📝 Today's work has not been recorded yet.</span>
+        <a href="#record" class="btn small" id="todayAlertBtn">Record today</a>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="card hero">
+          <div class="kpi-label">Total revenue</div>
+          <div class="hero-value" id="kRevenue">0</div>
+          <div class="delta" id="kRevenueDelta"></div>
+          <div class="target hidden" id="targetBox">
+            <div class="target-row">
+              <span id="targetText"></span>
+              <span id="targetPct"></span>
+            </div>
+            <div class="meter"><div class="meter-fill" id="targetFill"></div></div>
+          </div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label"><i class="key s1"></i>Drinks sales</div>
+          <div class="kpi-value" id="kDrinks">0</div>
+          <div class="delta" id="kDrinksDelta"></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label"><i class="key s2"></i>Charging</div>
+          <div class="kpi-value" id="kCharging">0</div>
+          <div class="delta" id="kChargingDelta"></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Expenses</div>
+          <div class="kpi-value" id="kExpenses">0</div>
+          <div class="delta" id="kExpensesDelta"></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Net profit</div>
+          <div class="kpi-value" id="kProfit">0</div>
+          <div class="delta" id="kProfitDelta"></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Average per day</div>
+          <div class="kpi-value" id="kAvg">0</div>
+          <div class="kpi-foot" id="kDays"></div>
+        </div>
+        <div class="card kpi">
+          <div class="kpi-label">Best day</div>
+          <div class="kpi-value" id="kBest">—</div>
+          <div class="kpi-foot" id="kBestDate"></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card chart-card span-2">
+          <div class="card-head">
+            <div>
+              <h2>Revenue trend</h2>
+              <p class="sub" id="trendSub">Daily drinks and charging revenue</p>
+            </div>
+            <button class="link" data-table-toggle="trend">Show table</button>
+          </div>
+          <div class="legend">
+            <span><i class="key s1"></i>Drinks</span>
+            <span><i class="key s2"></i>Charging</span>
+          </div>
+          <div class="chart" id="trendChart"></div>
+          <div class="table-view hidden" id="trendTable"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Revenue mix</h2></div>
+          <div class="mix-bar" id="mixBar"></div>
+          <ul class="mix-list" id="mixList"></ul>
+          <div class="divider"></div>
+          <h3>Profit margin</h3>
+          <div class="margin-value" id="marginValue">—</div>
+          <p class="sub" id="marginSub"></p>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Best days of the week</h2>
+              <p class="sub">Average revenue per weekday</p>
+            </div>
+          </div>
+          <div class="hbars" id="weekdayChart"></div>
+        </div>
+
+        <div class="card span-2">
+          <div class="card-head">
+            <h2>Recent days</h2>
+            <a href="#reports" class="link">View all</a>
+          </div>
+          <div class="table-wrap">
+            <table class="stack">
+              <thead><tr><th>Date</th><th class="num">Drinks</th><th class="num">Charging</th><th class="num">Revenue</th><th class="num">Expenses</th><th class="num">Profit</th></tr></thead>
+              <tbody id="recentBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== RECORD DAY ===================== -->
+    <section class="page" id="page-record">
+      <header class="page-head">
+        <div>
+          <h1>Record Day</h1>
+          <p class="sub">Enter the day's totals. Revenue and profit are calculated automatically.</p>
+        </div>
+      </header>
+
+      <div class="record-grid">
+        <div class="card">
+          <form id="dayForm" class="form">
+            <label>Date
+              <div class="datebar">
+                <button type="button" class="icon-btn" id="prevDay" aria-label="Previous day">‹</button>
+                <input type="date" id="workDate" required>
+                <button type="button" class="icon-btn" id="nextDay" aria-label="Next day">›</button>
+                <button type="button" class="btn small ghost" id="goToday">Today</button>
+              </div>
+            </label>
+            <div class="form-2">
+              <label><span><i class="key s1"></i>Drinks sales</span>
+                <input type="number" id="fDrinks" class="big" min="0" step="any" placeholder="0" inputmode="decimal">
+              </label>
+              <label><span><i class="key s2"></i>Charging</span>
+                <input type="number" id="fCharging" class="big" min="0" step="any" placeholder="0" inputmode="decimal">
+              </label>
+            </div>
+            <label>Expenses <small>(optional — fuel, restock, etc.)</small>
+              <input type="number" id="fExpenses" min="0" step="any" placeholder="0" inputmode="decimal">
+            </label>
+            <label>Note <small>(optional)</small>
+              <input type="text" id="fNote" placeholder="e.g. light was off in the afternoon">
+            </label>
+
+            <div class="sum-box">
+              <div><span>Revenue</span><strong id="fRevenue">0</strong></div>
+              <div><span>Expenses</span><strong id="fExp">0</strong></div>
+              <div class="profit"><span>Net profit</span><strong id="fProfit">0</strong></div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn" type="submit" id="saveBtn">Save day</button>
+              <button class="btn ghost danger hidden" type="button" id="deleteBtn">Delete</button>
+            </div>
+            <p class="sub" id="formStatus"></p>
+          </form>
+        </div>
+
+        <div class="side-col">
+          <div class="card">
+            <h2>How this day compares</h2>
+            <div class="compare" id="compareBox"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h2 id="monthListTitle">This month</h2>
+              <span class="pill" id="monthListTotal"></span>
+            </div>
+            <div class="table-wrap">
+              <table class="stack">
+                <thead><tr><th>Date</th><th class="num">Drinks</th><th class="num">Charging</th><th class="num">Revenue</th></tr></thead>
+                <tbody id="monthListBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== REPORTS ===================== -->
+    <section class="page" id="page-reports">
+      <header class="page-head">
+        <div>
+          <h1>Reports</h1>
+          <p class="sub">Monthly statement and yearly summary</p>
+        </div>
+        <div class="head-actions">
+          <input type="month" id="reportMonth" aria-label="Month">
+          <button class="btn small ghost" id="exportCsv">Export CSV</button>
+          <button class="btn small ghost" id="printBtn">Print</button>
+        </div>
+      </header>
+
+      <div class="kpi-grid four">
+        <div class="card kpi"><div class="kpi-label"><i class="key s1"></i>Drinks</div><div class="kpi-value" id="mDrinks">0</div></div>
+        <div class="card kpi"><div class="kpi-label"><i class="key s2"></i>Charging</div><div class="kpi-value" id="mCharging">0</div></div>
+        <div class="card kpi"><div class="kpi-label">Revenue</div><div class="kpi-value" id="mRevenue">0</div><div class="kpi-foot" id="mAvg"></div></div>
+        <div class="card kpi"><div class="kpi-label">Net profit</div><div class="kpi-value" id="mProfit">0</div><div class="kpi-foot" id="mExp"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2 id="reportTitle">Monthly statement</h2></div>
+        <div class="table-wrap">
+          <table class="stack">
+            <thead><tr><th>Date</th><th class="num">Drinks</th><th class="num">Charging</th><th class="num">Revenue</th><th class="num">Expenses</th><th class="num">Profit</th><th>Note</th></tr></thead>
+            <tbody id="reportBody"></tbody>
+            <tfoot id="reportFoot"></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>Year summary</h2>
+            <p class="sub">Monthly revenue</p>
+          </div>
+          <div class="inline">
+            <input type="number" id="reportYear" class="year" min="2000" max="2100" aria-label="Year">
+            <button class="link" data-table-toggle="year">Show table</button>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i class="key s1"></i>Drinks</span>
+          <span><i class="key s2"></i>Charging</span>
+        </div>
+        <div class="chart" id="yearChart"></div>
+        <div class="table-view hidden" id="yearTable"></div>
+      </div>
+    </section>
+
+    <!-- ===================== ADMIN ===================== -->
+    <section class="page" id="page-admin">
+      <header class="page-head">
+        <div>
+          <h1>Admin</h1>
+          <p class="sub">Add people who can use the app, change their role, or remove their access.</p>
+        </div>
+      </header>
+
+      <div class="kpi-grid four">
+        <div class="card kpi"><div class="kpi-label">Active users</div><div class="kpi-value" id="aActive">0</div></div>
+        <div class="card kpi"><div class="kpi-label">Admins</div><div class="kpi-value" id="aAdmins">0</div></div>
+        <div class="card kpi"><div class="kpi-label">Staff</div><div class="kpi-value" id="aStaff">0</div></div>
+        <div class="card kpi"><div class="kpi-label">Removed</div><div class="kpi-value" id="aRemoved">0</div></div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="card">
+          <h2>Add user</h2>
+          <p class="sub">Creates a login. Give the person their email and password — they can change the password with “Forgot password?”.</p>
+          <form id="addUserForm" class="form mt">
+            <label>Name <input type="text" id="uName" maxlength="80" required placeholder="e.g. Chinedu"></label>
+            <label>Email <input type="email" id="uEmail" required autocomplete="off"></label>
+            <label>Password <small>(at least 6 characters)</small>
+              <div class="pw-row">
+                <input type="text" id="uPassword" minlength="6" required autocomplete="new-password">
+                <button type="button" class="btn small ghost" id="genPassword">Generate</button>
+              </div>
+            </label>
+            <label>Role
+              <select id="uRole">
+                <option value="staff">Staff — record days, view dashboard &amp; reports</option>
+                <option value="admin">Admin — everything, including users &amp; settings</option>
+              </select>
+            </label>
+            <p class="auth-error hidden" id="addUserMsg"></p>
+            <button class="btn" type="submit" id="addUserBtn">Add user</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Users</h2>
+            <input type="search" id="userSearch" class="search" placeholder="Search name or email" aria-label="Search users">
+          </div>
+          <div class="table-wrap">
+            <table class="stack">
+              <thead><tr><th>User</th><th>Role</th><th>Added</th><th class="num">Actions</th></tr></thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+
+          <details class="removed-box" id="removedBox">
+            <summary>Removed users (<span id="removedCount">0</span>)</summary>
+            <div class="table-wrap">
+              <table class="stack">
+                <thead><tr><th>User</th><th>Role</th><th>Removed</th><th class="num">Actions</th></tr></thead>
+                <tbody id="removedBody"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="card mt-card">
+        <h2>What each role can do</h2>
+        <div class="table-wrap">
+          <table class="roles">
+            <thead><tr><th></th><th>Admin</th><th>Staff</th></tr></thead>
+            <tbody>
+              <tr><td>View dashboard &amp; reports</td><td>✔</td><td>✔</td></tr>
+              <tr><td>Record &amp; update days</td><td>✔</td><td>✔</td></tr>
+              <tr><td>Delete days</td><td>✔</td><td>—</td></tr>
+              <tr><td>Change shop settings &amp; restore backups</td><td>✔</td><td>—</td></tr>
+              <tr><td>Add, edit &amp; remove users</td><td>✔</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <section class="page" id="page-settings">
+      <header class="page-head">
+        <div><h1>Settings</h1></div>
+      </header>
+      <div class="settings-grid">
+        <div class="card">
+          <h2>Business</h2>
+          <p class="sub" data-staff-only>Only the admin can change these.</p>
+          <div class="form mt">
+            <label>Shop name <input type="text" id="setShopName" data-admin-edit></label>
+            <label>Currency symbol <input type="text" id="setCurrency" maxlength="4" data-admin-edit></label>
+            <label>Monthly revenue target <small>(optional)</small>
+              <input type="number" id="setTarget" min="0" step="any" placeholder="e.g. 500000" data-admin-edit>
+            </label>
+            <label>Appearance
+              <select id="setTheme">
+                <option value="system">Match device</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Account &amp; sync</h2>
+          <p class="sub">Records are saved in the cloud (Firebase) and shared by everyone the admin has added. If the internet goes off you can keep working — changes upload automatically when it comes back.</p>
+          <div class="account-box mt">
+            <div>
+              <div class="kpi-label">Signed in as</div>
+              <strong data-user-email></strong> <span class="role-tag" data-user-role></span>
+            </div>
+            <div class="sync" data-sync><i></i><span>Connecting…</span></div>
+          </div>
+          <div class="inline mt">
+            <button class="btn ghost danger" data-signout>Sign out</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Backup</h2>
+          <p class="sub">Download a copy of all records as a file for safekeeping.<span data-admin-only> Restoring a backup replaces all shop records in the cloud.</span></p>
+          <div class="inline mt">
+            <button class="btn ghost" id="backupBtn">Download backup</button>
+            <label class="btn ghost file-btn" data-admin-only>Restore backup
+              <input type="file" id="restoreFile" accept=".json">
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="tooltip" class="tooltip" role="status"></div>
+<div id="toast" class="toast"></div>
+<script src="charts.js"></script>
+<script>
+  // Firebase sign-in needs a web address (http/https). Opening index.html by double-click won't work.
+  if (location.protocol === 'file:') {
+    document.body.classList.remove('booting');
+    document.getElementById('authScreen').classList.remove('hidden');
+    const e = document.getElementById('authError');
+    e.textContent = 'Open the site with start.bat (http://localhost:8080) or your Firebase Hosting link — sign-in does not work when index.html is opened directly.';
+    e.classList.remove('hidden');
+    document.getElementById('authSubmit').disabled = true;
+  }
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

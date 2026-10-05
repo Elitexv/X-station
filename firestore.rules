@@ -1,0 +1,75 @@
+rules_version = '2';
+
+// Who can do what:
+//   admin  – everything: record days, delete days, change settings, add / remove users
+//   staff  – view dashboard & reports, record and update days
+//   anyone else (no member record, or removed) – nothing
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function memberPath(uid) { return /databases/$(database)/documents/members/$(uid); }
+    function setupPath() { return /databases/$(database)/documents/meta/setup; }
+    function me() { return get(memberPath(request.auth.uid)).data; }
+    function isActive() { return signedIn() && exists(memberPath(request.auth.uid)) && me().active == true; }
+    function isAdmin() { return isActive() && me().role == 'admin'; }
+
+    function isMoney(v) { return v is number && v >= 0 && v < 1000000000; }
+
+    function validMember(m) {
+      return m.keys().hasOnly(['email', 'name', 'role', 'active', 'createdAt', 'createdBy', 'updatedAt'])
+        && m.email is string && m.name is string && m.name.size() <= 80
+        && m.role in ['admin', 'staff'] && m.active is bool;
+    }
+
+    function validDay(d) {
+      return d.keys().hasOnly(['drinks', 'charging', 'expenses', 'note', 'updatedAt', 'updatedBy'])
+        && isMoney(d.drinks) && isMoney(d.charging) && isMoney(d.expenses)
+        && d.note is string && d.note.size() <= 500
+        && d.updatedAt == request.time
+        && d.updatedBy == request.auth.token.email;
+    }
+
+    // ---- first-time setup: the very first account becomes admin, once ----
+    match /meta/setup {
+      allow read: if true;
+      allow create: if signedIn()
+        && getAfter(memberPath(request.auth.uid)).data.role == 'admin';
+      allow update, delete: if false;
+    }
+
+    // ---- users of the app ----
+    match /members/{uid} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+
+      allow create: if validMember(request.resource.data) && (
+        isAdmin()
+        || (signedIn() && request.auth.uid == uid             // first admin claiming the shop
+            && !exists(setupPath()) && existsAfter(setupPath())
+            && request.resource.data.role == 'admin' && request.resource.data.active == true)
+      );
+
+      // admins manage users, but cannot demote or remove themselves (so there is always an admin)
+      allow update: if isAdmin() && validMember(request.resource.data)
+        && request.resource.data.email == resource.data.email
+        && (uid != request.auth.uid
+            || (request.resource.data.role == 'admin' && request.resource.data.active == true));
+
+      allow delete: if false; // removing access = active:false, so it can be restored later
+    }
+
+    // ---- shop records ----
+    match /shop/main {
+      allow read: if isActive();
+      allow write: if isAdmin();
+
+      match /days/{day} {
+        allow read: if isActive();
+        allow create, update: if isActive()
+          && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && validDay(request.resource.data);
+        allow delete: if isAdmin();
+      }
+    }
+  }
+}
