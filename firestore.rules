@@ -1,8 +1,8 @@
 rules_version = '2';
 
 // Who can do what:
-//   admin  – everything: record days, delete days, change settings, add / remove users
-//   staff  – view dashboard & reports, record and update days
+//   admin  – everything: all businesses, add / edit / delete businesses, delete days, add / remove users
+//   staff  – only the businesses the admin gave them: view dashboard & reports, record and update days
 //   anyone else (no member record, or removed) – nothing
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -13,21 +13,30 @@ service cloud.firestore {
     function me() { return get(memberPath(request.auth.uid)).data; }
     function isActive() { return signedIn() && exists(memberPath(request.auth.uid)) && me().active == true; }
     function isAdmin() { return isActive() && me().role == 'admin'; }
+    // staff created before multi-business support only had the first business ("main")
+    function canUse(bizId) { return isAdmin() || (isActive() && bizId in me().get('businesses', ['main'])); }
 
     function isMoney(v) { return v is number && v >= 0 && v < 1000000000; }
 
     function validMember(m) {
-      return m.keys().hasOnly(['email', 'name', 'role', 'active', 'createdAt', 'createdBy', 'updatedAt'])
+      return m.keys().hasOnly(['email', 'name', 'role', 'active', 'businesses', 'createdAt', 'createdBy', 'updatedAt'])
         && m.email is string && m.name is string && m.name.size() <= 80
-        && m.role in ['admin', 'staff'] && m.active is bool;
+        && m.role in ['admin', 'staff'] && m.active is bool
+        && (!('businesses' in m) || (m.businesses is list && m.businesses.size() <= 100));
     }
 
     function validDay(d) {
-      return d.keys().hasOnly(['drinks', 'charging', 'expenses', 'note', 'updatedAt', 'updatedBy'])
-        && isMoney(d.drinks) && isMoney(d.charging) && isMoney(d.expenses)
+      return d.keys().hasOnly(['income', 'expenses', 'note', 'updatedAt', 'updatedBy'])
+        && d.income is map && d.income.size() <= 12
+        && isMoney(d.expenses)
         && d.note is string && d.note.size() <= 500
         && d.updatedAt == request.time
         && d.updatedBy == request.auth.token.email;
+    }
+
+    function validBusiness(b) {
+      return b.name is string && b.name.size() > 0 && b.name.size() <= 80
+        && b.categories is list && b.categories.size() >= 1 && b.categories.size() <= 6;
     }
 
     // ---- first-time setup: the very first account becomes admin, once ----
@@ -44,7 +53,7 @@ service cloud.firestore {
 
       allow create: if validMember(request.resource.data) && (
         isAdmin()
-        || (signedIn() && request.auth.uid == uid             // first admin claiming the shop
+        || (signedIn() && request.auth.uid == uid             // first admin claiming the app
             && !exists(setupPath()) && existsAfter(setupPath())
             && request.resource.data.role == 'admin' && request.resource.data.active == true)
       );
@@ -58,14 +67,15 @@ service cloud.firestore {
       allow delete: if false; // removing access = active:false, so it can be restored later
     }
 
-    // ---- shop records ----
-    match /shop/main {
-      allow read: if isActive();
-      allow write: if isAdmin();
+    // ---- businesses and their records ----
+    match /shop/{bizId} {
+      allow read: if canUse(bizId);
+      allow create, update: if isAdmin() && validBusiness(request.resource.data);
+      allow delete: if isAdmin();
 
       match /days/{day} {
-        allow read: if isActive();
-        allow create, update: if isActive()
+        allow read: if canUse(bizId);
+        allow create, update: if canUse(bizId)
           && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
           && validDay(request.resource.data);
         allow delete: if isAdmin();

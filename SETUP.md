@@ -39,25 +39,42 @@ The first time the site opens, the login page says **First-time setup**. Enter y
 and a password → **Create admin account**. This account becomes the admin, and the setup page
 never appears again.
 
-Then open **Admin** in the menu to add your staff:
+### Businesses
+
+X-Station can manage several businesses: a charging centre, a shop, a restaurant, and so on.
+Each one has its own records, dashboard, reports, currency and monthly target.
+
+- **Add a business:** go to **Businesses** → **+ Add business**. Choose the type and it fills in
+  income categories (for example *Food* and *Drinks* for a restaurant). Rename them or add more,
+  up to 6.
+- **Switch business:** use the **Business** menu at the top of the sidebar (on a phone, it's at
+  the top of the screen). Dashboard, Record and Reports always show the selected business.
+- **Edit or archive:** press ✎ on a business card. Archiving hides a business but keeps its
+  records. Restore it, or delete it forever, under **Archived businesses**.
+
+### Users
+
+Open **Users** in the menu to add your staff:
 
 1. Enter their name and email, then type a password or press **Generate**.
-2. Choose the role (**Staff** or **Admin**) → **Add user**.
+2. Choose the role. For **Staff**, tick the businesses they work on → **Add user**.
 3. Give them the email and password shown. They sign in on their own phone or computer.
+4. Change which businesses someone can use later with **Access** next to their name.
 
-| What they can do                           | Admin | Staff |
-|--------------------------------------------|:-----:|:-----:|
-| View dashboard & reports                   |   ✔   |   ✔   |
-| Record & update days                       |   ✔   |   ✔   |
-| Delete days                                |   ✔   |   —   |
-| Change shop settings & restore backups     |   ✔   |   —   |
-| Add, edit & delete users                   |   ✔   |   —   |
+| What they can do                           | Admin | Staff   |
+|--------------------------------------------|:-----:|:-------:|
+| Which businesses                           |  All  | Chosen  |
+| View dashboard & reports                   |   ✔   |   ✔     |
+| Record & update days                       |   ✔   |   ✔     |
+| Delete days                                |   ✔   |   —     |
+| Add, edit & archive businesses             |   ✔   |   —     |
+| Add, edit & delete users                   |   ✔   |   —     |
 
 **Deleting a user** signs them out and blocks them straight away. They appear under
 **Removed users**, where **Restore access** lets them back in. To also erase their login
 completely, delete them in Firebase console → Authentication → Users.
 
-**Forgotten password:** press **Reset password** next to the user on the Admin page, or the user
+**Forgotten password:** press **Reset password** next to the user on the Users page, or the user
 presses **Forgot password?** on the login page. Firebase emails them a reset link.
 
 ## 6. Put it online, to use on phones (Firebase Hosting)
@@ -72,6 +89,23 @@ firebase deploy
 
 This uploads the site and the security rules, then prints your link, for example
 **https://x-station-c1a03.web.app**. Run `firebase deploy` again whenever the files change.
+
+## 7. Install it as an app
+
+X-Station is a progressive web app: it can be installed with its own icon and opens full
+screen, like an app from the store.
+
+- **Android / Chrome / Edge:** open the site and press **Install app** (in the sidebar, or
+  Settings → App), or use the browser menu → **Install app** / **Add to Home screen**.
+- **iPhone / iPad:** open the site in Safari → **Share** → **Add to Home Screen**.
+
+Long-press the installed icon for shortcuts: **Record today**, **Dashboard**, **All businesses**.
+When a new version is deployed, the app shows **"A new version is ready — Update now"**.
+
+## Testing changes safely (optional)
+
+To try changes without touching real data, run the local Firebase emulators (they need Java):
+`firebase emulators:start --only auth,firestore`, then open http://localhost:8080/?emulator=1.
 
 ## Good to know
 
