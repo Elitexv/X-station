@@ -15,7 +15,8 @@
       ".git/**",
       "**/.git/**",
       ".firebase/**",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/*.log"
     ],
     "headers": [
       {
